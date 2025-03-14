@@ -1,32 +1,26 @@
 #!/bin/bash
-# scraper qui recuere le prix du Bitcoin sur la page KuCoin "Bitcoin Price (BTC)"
-# et l'enregistre dans un CSV.
+# scraper_bitinfocharts.sh - Récupère le prix du Bitcoin depuis BitInfoCharts et l'enregistre dans un CSV
 
-# URL de KuCoin
-URL="https://www.kucoin.com/fr/price/BTC"
+URL="https://bitinfocharts.com/bitcoin/"
 
-# recupere le contenu HTML de la page en imitant un navigateur
-html_content=$(curl -s -A "Mozilla/5.0" "$URL")
+# Récupérer le contenu HTML de la page (user-agent complet pour imiter un navigateur)
+html_content=$(curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36" "$URL")
 
-# On extrait ensuite la valeur monétaire dans <h2 class="lrtcss-sde0qk">...</h2>
+# Utiliser \K au lieu d'un lookbehind variable
+# On recherche d'abord 'span itemprop="price"[^>]*>' puis on jette cette partie, 
+# et on capture la suite [0-9,]+(\.[0-9]+)? jusqu'au lookahead (?=</span>)
 price=$(echo "$html_content" \
-  | grep -oP '(?<=<h2 class="lrtcss-sde0qk">)\$?[0-9,]+(\.[0-9]+)?(?=</h2>)' \
+  | grep -oP 'span itemprop="price"[^>]*>\K[0-9,]+(\.[0-9]+)?(?=</span>)' \
   | head -n 1)
 
-# Dans le cas d'un erreur si la regex ne trouve rien, on met "N/A"
+# Gérer le cas où aucun prix n'est trouvé
 if [ -z "$price" ]; then
     price="N/A"
 fi
 
-# Récupération de l'heure
 timestamp=$(date "+%Y-%m-%d %H:%M:%S")
 
-# Fichier CSV de sortie
-CSV_FILE="data_kucoin.csv"
+CSV_FILE="data_bitinfocharts.csv"
+echo "$timestamp;$price" >> "$CSV_FILE"
 
-# on rédige la ligne (timestamp, prix) dans le CSV
-echo "$timestamp,$price" >> "$CSV_FILE"
-
-# Afficher le résultat pour vérification
-echo "[$timestamp] Prix du Bitcoin (KuCoin) : $price"
-
+echo "[$timestamp] Prix BTC (BitInfoCharts) : $price"

@@ -1,3 +1,3 @@
 READ THIS FIRST
 
-website scrapped :https://www.kucoin.com/
+website scrapped : https://bitinfocharts.com/
