@@ -20,7 +20,7 @@ fi
 
 timestamp=$(date "+%Y-%m-%d %H:%M:%S")
 
-CSV_FILE="/home/adot/Documents/data_bitinfocharts.csv"
+CSV_FILE="/home/ubuntu/PGL/Projet_GPL/data_bitinfocharts.csv"
 echo "$timestamp;$price" >> "$CSV_FILE"
 
 echo "[$timestamp] Prix BTC (BitInfoCharts) : $price"
