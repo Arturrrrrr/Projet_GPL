@@ -23,7 +23,7 @@ app.layout = html.Div([
 )
 def update_graph(n):
     # On relit le CSV à chaque callback
-    df = pd.read_csv("/chemin/vers/data_bitinfocharts.csv", sep=';', header=None, names=['timestamp','price'])
+    df = pd.read_csv("data_bitinfocharts.csv", sep=';', header=None, names=['timestamp','price'])
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df['price'] = df['price'].replace('N/A', None).astype(float)
 
