@@ -8,6 +8,9 @@ def main():
     chrome_options.add_argument("--headless")          # mode headless (pas d'interface)
     chrome_options.add_argument("--no-sandbox")        # requis sur certaines VM
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option('useAutomationExtension', False)
 
     # Créer l'instance du driver
     # Sur Ubuntu, si 'chromedriver' est dans PATH, ça devrait marcher directement :
@@ -18,7 +21,7 @@ def main():
         driver.get(url)
 
         # Attendre un peu (optionnel), pour s'assurer que le JavaScript se charge
-        time.sleep(5)
+        time.sleep(15)
 
         # Récupérer le HTML final
         html_content = driver.page_source
