@@ -7,7 +7,7 @@ import time
 app = dash.Dash(__name__)
 
 app.layout = html.Div([
-    html.H1("Dashboard BTC"),
+    html.H1("Dashboard CAC40"),
     dcc.Graph(id='time-series'),
     # Intervalle de rafraîchissement toutes les 5 minutes
     dcc.Interval(
@@ -23,7 +23,7 @@ app.layout = html.Div([
 )
 def update_graph(n):
     # On relit le CSV à chaque callback
-    df = pd.read_csv("data_bitinfocharts.csv", sep=';', header=None, names=['timestamp','price'])
+    df = pd.read_csv("data_euronext.csv", sep=';', header=None, names=['timestamp','price'])
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df['price'] = df['price'].str.replace(',', '', regex=False).replace('N/A', None).astype(float)
 
@@ -32,10 +32,10 @@ def update_graph(n):
             'x': df['timestamp'],
             'y': df['price'],
             'type': 'line',
-            'name': 'BTC Price'
+            'name': 'CAC40 Price'
         }],
         'layout': {
-            'title': 'BTC Price over time'
+            'title': 'CAC40 Price over time'
         }
     }
     return fig
