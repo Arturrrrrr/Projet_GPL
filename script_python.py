@@ -27,6 +27,8 @@ def update_graph(n):
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df['price'] = df['price'].str.replace(',', '', regex=False).replace('N/A', None).astype(float)
 
+    #test change
+
     fig = {
         'data': [{
             'x': df['timestamp'],
