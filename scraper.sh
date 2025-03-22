@@ -1,5 +1,5 @@
 #!/bin/bash
-=$html_content(curl 'https://live.euronext.com/en/ajax/getDetailedQuote/FR0003500008-XPAR' \
+html_content=$(curl 'https://live.euronext.com/en/ajax/getDetailedQuote/FR0003500008-XPAR' \
   -H 'accept: */*' \
   -H 'accept-language: en-US,en;q=0.6' \
   -b 'visid_incap_2790185=XImDpAicSim3shRTA5d1jit7F2cAAAAAQUIPAAAAAAA4IUgxjbj8LfUu/XYFdTWF; visid_incap_2784265=rYFr5fh8Qw6Dn3OEqzZHCz57F2cAAAAAQUIPAAAAAAAbZ5IKpjTM9h6jXmzSKPNE; visid_incap_2784297=pCDW0gMNSlmvuAx6GA97ux+B1WcAAAAAQUIPAAAAAABEFAQkMx3haqpCBqB/MtJN; visid_incap_2691598=RnU32VkcQHOD1Z9pGCK1ZiCB1WcAAAAAQUIPAAAAAABHhBZlcORyUkT4Vu9BC6GL; incap_ses_465_2784297=YlqcYdvUUjAu0vjYTAN0BhTy1mcAAAAAb+H/p1NwlioNKjc75fZJ2w==; incap_ses_465_2790185=r/CbVXxRuR/J1PjYTAN0Bhny1mcAAAAAyAY9/0OFz4lGnHCiK2oHkg==; incap_ses_465_2691598=XqRzcjXcI1bA1PjYTAN0Bhry1mcAAAAACSKbV/YaNlK+jPxQIgTIFw==' \
