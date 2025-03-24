@@ -87,9 +87,7 @@ def update_dashboard(n):
             'yaxis': {'title': 'Relative variation (%)'},
             'tickformat': '.1f',
             'range': [0, 100]
-        },
-        'height': 500,
-        'width': 1200
+        }
     }
 
     # Daily report (affichage + création si besoin)
@@ -114,12 +112,14 @@ def update_dashboard(n):
                 name = file.replace('.csv', '')
                 open_price = df['price'].iloc[0]
                 close_price = df['price'].iloc[-1]
+                change = close_price - open_price
                 pct_change = ((close_price - open_price) / open_price) * 100
 
                 report_data.append({
                     'Index': name,
                     'Open': round(open_price, 2),
                     'Close': round(close_price, 2),
+                    'Change': round(change, 2),
                     'Change (%)': round(pct_change, 2),
                     'High': round(df['price'].max(), 2),
                     'Low': round(df['price'].min(), 2),
