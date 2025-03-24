@@ -12,7 +12,7 @@ app = dash.Dash(__name__)
 csv_files = ["AEX.csv", "BEL20.csv", "CAC40.csv", "ISEQ20.csv", "OBX.csv", "PSI.csv"]
 
 app.layout = html.Div([
-    html.H1("Dashboard Indices Européens", style={'textAlign': 'center', 'color': '#ffffff'}),
+    html.H1("Dashboard Indices Européens", style={'textAlign': 'center', 'color': '#000000'}),
     html.Div([
         dcc.Graph(id='time-series-relative'),
     ], style={'width': '90%', 'margin': 'auto'}),
@@ -23,7 +23,7 @@ app.layout = html.Div([
         interval=5 * 60 * 1000,  # toutes les 5 minutes
         n_intervals=0
     )
-],style={'fontFamily': 'Arial, sans-serif', 'backgroundColor': '#1a1a1a', 'padding': '20px'})
+],style={'fontFamily': 'Arial, sans-serif', 'padding': '20px'})
 
 @app.callback(
     [Output('time-series-absolute', 'figure'),
@@ -148,7 +148,7 @@ def update_dashboard(n):
     else:
         report_table = html.P("Le daily report sera disponible à 16h40.")
 
-    return fig_absolute, fig_relative, report_table
+    return fig_relative, report_table
 
 server = app.server
 
