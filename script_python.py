@@ -13,9 +13,7 @@ csv_files = ["AEX.csv", "BEL20.csv", "CAC40.csv", "ISEQ20.csv", "OBX.csv", "PSI.
 
 app.layout = html.Div([
     html.H1("Dashboard Indices Européens", style={'textAlign': 'center', 'color': '#000000'}),
-    html.Div([
-        dcc.Graph(id='time-series-relative'),
-    ], style={'width': '90%', 'margin': 'auto'}),
+    dcc.Graph(id='time-series-relative'),
     html.H2("Daily Report", style={'textAlign': 'center', 'marginTop': '40px'}),
     html.Div(id='daily-report', style={'width': '90%', 'margin': 'auto'}),
     dcc.Interval(
@@ -23,16 +21,14 @@ app.layout = html.Div([
         interval=5 * 60 * 1000,  # toutes les 5 minutes
         n_intervals=0
     )
-],style={'fontFamily': 'Arial, sans-serif', 'padding': '20px'})
+])
 
 @app.callback(
-    [Output('time-series-absolute', 'figure'),
-     Output('time-series-relative', 'figure'),
+    [Output('time-series-relative', 'figure'),
      Output('daily-report', 'children')],
     Input('interval-component', 'n_intervals')
 )
 def update_dashboard(n):
-    traces_absolute = []
     traces_relative = []
 
     now = pd.Timestamp.now()
