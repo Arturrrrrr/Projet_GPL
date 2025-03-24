@@ -12,17 +12,18 @@ app = dash.Dash(__name__)
 csv_files = ["AEX.csv", "BEL20.csv", "CAC40.csv", "ISEQ20.csv", "OBX.csv", "PSI.csv"]
 
 app.layout = html.Div([
-    html.H1("Dashboard Indices Européens"),
-    dcc.Graph(id='time-series-absolute'),
-    dcc.Graph(id='time-series-relative'),
-    html.H2("Daily Report"),
-    html.Div(id='daily-report'),
+    html.H1("Dashboard Indices Européens", style={'textAlign': 'center', 'color': '#ffffff'}),
+    html.Div([
+        dcc.Graph(id='time-series-relative'),
+    ], style={'width': '90%', 'margin': 'auto'}),
+    html.H2("Daily Report", style={'textAlign': 'center', 'marginTop': '40px'}),
+    html.Div(id='daily-report', style={'width': '90%', 'margin': 'auto'}),
     dcc.Interval(
         id='interval-component',
         interval=5 * 60 * 1000,  # toutes les 5 minutes
         n_intervals=0
     )
-])
+],style={'fontFamily': 'Arial, sans-serif', 'backgroundColor': '#1a1a1a', 'padding': '20px'})
 
 @app.callback(
     [Output('time-series-absolute', 'figure'),
@@ -37,6 +38,15 @@ def update_dashboard(n):
     now = pd.Timestamp.now()
     today = now.normalize()
 
+    # horaires ouverture/fermeture
+
+    #AEL: 08:00-16:40
+    #BEL20: 08:00-16:40
+    #CAC40: 08:00-16:40
+    #ISEQ20: 08:00-16:40
+    #OBX: 08:00-15:30
+    #PSI: 08:00-16:40
+
     # Date du rapport à afficher (hier si < 16h40, aujourd’hui si ≥ 1640)
     report_day = today if now.time() >= pd.to_datetime("16:40").time() else today - pd.Timedelta(days=1)
     report_filename = f"report_{report_day.date()}.csv"
@@ -48,19 +58,11 @@ def update_dashboard(n):
             df['timestamp'] = pd.to_datetime(df['timestamp'])
             df['price'] = df['price'].astype(str).str.replace(',', '', regex=False).replace('N/A', None).astype(float)
 
-            # Filtrage : jours ouvrés et heures entre 08h00 et 16h35
+            # Filtrage : jours ouvrés et heures entre 08h00 et 16h40
             df = df[df['timestamp'].dt.weekday < 5]
-            df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:35").time())]
+            df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
 
             name = file.replace('.csv', '')
-
-            # Graphique absolu
-            traces_absolute.append({
-                'x': df['timestamp'],
-                'y': df['price'],
-                'type': 'line',
-                'name': name
-            })
 
             # Graphique relatif
             P0 = df['price'].iloc[0]
@@ -76,16 +78,6 @@ def update_dashboard(n):
             print(f"Erreur avec le fichier {file} : {e}")
             continue
 
-    # Graphique prix absolus
-    fig_absolute = {
-        'data': traces_absolute,
-        'layout': {
-            'title': 'Absolute Indices Growth',
-            'xaxis': {'title': 'Date'},
-            'yaxis': {'title': 'Price'}
-        }
-    }
-
     # Graphique prix relatifs
     fig_relative = {
         'data': traces_relative,
@@ -93,8 +85,11 @@ def update_dashboard(n):
             'title': 'Relative Indices Growth',
             'xaxis': {'title': 'Date'},
             'yaxis': {'title': 'Relative variation (%)'},
-            'tickformat': '.1f'
-        }
+            'tickformat': '.1f',
+            'range': [0, 100]
+        },
+        'height': 500,
+        'width': 1200
     }
 
     # Daily report (affichage + création si besoin)
@@ -111,8 +106,7 @@ def update_dashboard(n):
 
                 df = df[df['timestamp'].dt.normalize() == today]
                 df = df[df['timestamp'].dt.weekday < 5]
-                df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(),
-                                                         pd.to_datetime("16:30").time())]
+                df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
 
                 if df.empty:
                     continue
