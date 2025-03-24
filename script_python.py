@@ -118,9 +118,7 @@ def update_dashboard(n):
                     'Change': round(change, 2),
                     'Change (%)': round(pct_change, 2),
                     'High': round(df['price'].max(), 2),
-                    'Chang': round(close_price-open_price, 2),
                     'Low': round(df['price'].min(), 2),
-                    'Mean': round(df['price'].mean(), 2),
                     'Volatility': round(df['price'].std(), 2)
                 })
 
