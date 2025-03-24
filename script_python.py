@@ -1,46 +1,160 @@
 import dash
-from dash import dcc, html
+from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output
 import pandas as pd
-import time
+import glob
+import os
+import datetime as dt
 
 app = dash.Dash(__name__)
 
+# Liste des fichiers CSV à traiter
+csv_files = ["AEX.csv", "BEL20.csv", "CAC40.csv", "ISEQ20.csv", "OBX.csv", "PSI.csv"]
+
 app.layout = html.Div([
-    html.H1("Dashboard CAC40"),
-    dcc.Graph(id='time-series'),
-    # Intervalle de rafraîchissement toutes les 5 minutes
+    html.H1("Dashboard Indices Européens"),
+    dcc.Graph(id='time-series-absolute'),
+    dcc.Graph(id='time-series-relative'),
+    html.H2("Daily Report"),
+    html.Div(id='daily-report'),
     dcc.Interval(
         id='interval-component',
-        interval=5*60*1000,  # 5 minutes en millisecondes
+        interval=5 * 60 * 1000,  # toutes les 5 minutes
         n_intervals=0
     )
 ])
 
 @app.callback(
-    Output('time-series', 'figure'),
+    [Output('time-series-absolute', 'figure'),
+     Output('time-series-relative', 'figure'),
+     Output('daily-report', 'children')],
     Input('interval-component', 'n_intervals')
 )
-def update_graph(n):
-    # On relit le CSV à chaque callback
-    df = pd.read_csv("data_euronext.csv", sep=';', header=None, names=['timestamp','price'])
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    df['price'] = df['price'].str.replace(',', '', regex=False).replace('N/A', None).astype(float)
+def update_dashboard(n):
+    traces_absolute = []
+    traces_relative = []
 
-    #test change
+    now = pd.Timestamp.now()
+    today = now.normalize()
 
-    fig = {
-        'data': [{
-            'x': df['timestamp'],
-            'y': df['price'],
-            'type': 'line',
-            'name': 'CAC40 Price'
-        }],
+    # Date du rapport à afficher (hier si < 16h40, aujourd’hui si ≥ 1640)
+    report_day = today if now.time() >= pd.to_datetime("16:40").time() else today - pd.Timedelta(days=1)
+    report_filename = f"report_{report_day.date()}.csv"
+
+    # Boucle sur chaque fichier pour les graphiques
+    for file in csv_files:
+        try:
+            df = pd.read_csv(file, sep=';', header=None, names=['timestamp', 'price'])
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            df['price'] = df['price'].astype(str).str.replace(',', '', regex=False).replace('N/A', None).astype(float)
+
+            # Filtrage : jours ouvrés et heures entre 08h00 et 16h35
+            df = df[df['timestamp'].dt.weekday < 5]
+            df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:35").time())]
+
+            name = file.replace('.csv', '')
+
+            # Graphique absolu
+            traces_absolute.append({
+                'x': df['timestamp'],
+                'y': df['price'],
+                'type': 'line',
+                'name': name
+            })
+
+            # Graphique relatif
+            P0 = df['price'].iloc[0]
+            df['relative'] = ((df['price'] - P0) / P0) * 100
+            traces_relative.append({
+                'x': df['timestamp'],
+                'y': df['relative'],
+                'type': 'line',
+                'name': name
+            })
+
+        except Exception as e:
+            print(f"Erreur avec le fichier {file} : {e}")
+            continue
+
+    # Graphique prix absolus
+    fig_absolute = {
+        'data': traces_absolute,
         'layout': {
-            'title': 'CAC40 Price over time'
+            'title': 'Absolute Indices Growth',
+            'xaxis': {'title': 'Date'},
+            'yaxis': {'title': 'Price'}
         }
     }
-    return fig
+
+    # Graphique prix relatifs
+    fig_relative = {
+        'data': traces_relative,
+        'layout': {
+            'title': 'Relative Indices Growth',
+            'xaxis': {'title': 'Date'},
+            'yaxis': {'title': 'Relative variation (%)'},
+            'tickformat': '.1f'
+        }
+    }
+
+    # Daily report (affichage + création si besoin)
+    if os.path.exists(report_filename):
+        report_df = pd.read_csv(report_filename)
+    elif now.time() >= pd.to_datetime("16:40").time() and report_day == today:
+        # Crée le rapport du jour à 16h40
+        report_data = []
+        for file in csv_files:
+            try:
+                df = pd.read_csv(file, sep=';', header=None, names=['timestamp', 'price'])
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                df['price'] = df['price'].astype(str).str.replace(',', '', regex=False).replace('N/A', None).astype(float)
+
+                df = df[df['timestamp'].dt.normalize() == today]
+                df = df[df['timestamp'].dt.weekday < 5]
+                df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(),
+                                                         pd.to_datetime("16:30").time())]
+
+                if df.empty:
+                    continue
+
+                name = file.replace('.csv', '')
+                open_price = df['price'].iloc[0]
+                close_price = df['price'].iloc[-1]
+                pct_change = ((close_price - open_price) / open_price) * 100
+
+                report_data.append({
+                    'Index': name,
+                    'Open': round(open_price, 2),
+                    'Close': round(close_price, 2),
+                    'Change (%)': round(pct_change, 2),
+                    'High': round(df['price'].max(), 2),
+                    'Low': round(df['price'].min(), 2),
+                    'Mean': round(df['price'].mean(), 2),
+                    'Volatility': round(df['price'].std(), 2)
+                })
+
+            except Exception as e:
+                print(f"Erreur génération rapport pour {file} : {e}")
+                continue
+
+        report_df = pd.DataFrame(report_data)
+        report_df.to_csv(report_filename, index=False)
+    else:
+        report_df = None
+
+    # Affichage du rapport
+    if report_df is not None and not report_df.empty:
+        report_table = dash_table.DataTable(
+            columns=[{"name": i, "id": i} for i in report_df.columns],
+            data=report_df.to_dict('records'),
+            style_table={'overflowX': 'auto'},
+            style_cell={'textAlign': 'center'},
+            style_header={'fontWeight': 'bold'}
+        )
+    else:
+        report_table = html.P("Le daily report sera disponible à 16h40.")
+
+    return fig_absolute, fig_relative, report_table
 
 server = app.server
 
