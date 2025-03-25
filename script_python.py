@@ -30,19 +30,19 @@ app.layout = html.Div([
     Input('interval-component', 'n_intervals')
 )
 def update_dashboard(n):
-    traces_relative = []
-
-    now = pd.Timestamp.now()
-    today = now.normalize()
 
     # horaires ouverture/fermeture
-
     #AEL: 08:00-16:40
     #BEL20: 08:00-16:40
     #CAC40: 08:00-16:40
     #ISEQ20: 08:00-16:40
     #OBX: 08:00-15:30
     #PSI: 08:00-16:40
+
+    traces_relative = []
+
+    now = pd.Timestamp.now()
+    today = now.normalize()
 
     # Date du rapport à afficher (hier si < 16h40, aujourd’hui si ≥ 1640)
     report_day = today if now.time() >= pd.to_datetime("16:40").time() else today - pd.Timedelta(days=1)
@@ -59,20 +59,27 @@ def update_dashboard(n):
             df = df[df['timestamp'].dt.weekday < 5]
             df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
 
-            # On ajoute une colonne Date pour grouper par jour
             df['Date'] = df['timestamp'].dt.date
-            segments = []
+            df = df.sort_values('timestamp')
 
+            segments = []
+            prev_close = None
+
+            # Pour chaque journée, on calcule la variation par rapport à la clôture de la veille
             for date_value, day_df in df.groupby('Date'):
                 day_df = day_df.sort_values('timestamp')
 
-                # Normalisation intrajournalière
-                P0 = day_df['price'].iloc[0]
-                day_df['relative'] = ((day_df['price'] - P0) / P0) * 100
+                if prev_close is None:
+                    P0 = day_df['price'].iloc[0]
+                else:
+                    P0 = prev_close
+
+                day_df['relative'] = day_df['price'] / P0
+                prev_close = day_df['price'].iloc[-1]
 
                 segments.append(day_df)
 
-                # Ajoute une ligne vide pour créer une coupure dans le tracé
+                # Ligne vide pour éviter le trait entre deux jours
                 empty_row = pd.DataFrame({
                     'timestamp': [day_df['timestamp'].iloc[-1] + pd.Timedelta(seconds=1)],
                     'price': [np.nan],
@@ -80,7 +87,6 @@ def update_dashboard(n):
                 })
                 segments.append(empty_row)
 
-            # Fusionner tous les segments avec coupures
             df_plot = pd.concat(segments)
 
             name = file.replace('.csv', '')
@@ -95,15 +101,27 @@ def update_dashboard(n):
             print(f"Erreur avec le fichier {file} : {e}")
             continue
 
-    # Graphique prix relatifs
+    # Graphique avec axe temporel segmenté
     fig_relative = {
         'data': traces_relative,
         'layout': {
             'title': 'Relative Indices Growth',
-            'xaxis': {'title': 'Date'},
-            'yaxis': {'title': 'Relative variation (%)'},
-            'tickformat': '.1f',
-            'range': [0, 100]
+            'xaxis': {
+                'title': 'Date',
+                'rangebreaks': [
+                    # Cacher les weekends
+                    {'pattern': 'day of week', 'bounds': [5, 1]},
+                    # Cacher les heures de fermeture
+                    {'pattern': 'hour', 'bounds': ['16:40', '08:00']}
+                ]
+            },
+            'yaxis': {
+                'title': 'Relative variation (%)',
+                'tickformat': '.2f',
+                'ticksuffix': '%'
+            },
+            'height': 500,
+            'width': 1200
         }
     }
 
