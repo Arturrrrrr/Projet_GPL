@@ -5,6 +5,7 @@ import pandas as pd
 import glob
 import os
 import datetime as dt
+import numpy as np
 
 app = dash.Dash(__name__)
 
@@ -58,14 +59,34 @@ def update_dashboard(n):
             df = df[df['timestamp'].dt.weekday < 5]
             df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
 
-            name = file.replace('.csv', '')
+            # On ajoute une colonne Date pour grouper par jour
+            df['Date'] = df['timestamp'].dt.date
+            segments = []
 
-            # Graphique relatif
-            P0 = df['price'].iloc[0]
-            df['relative'] = ((df['price'] - P0) / P0) * 100
+            for date_value, day_df in df.groupby('Date'):
+                day_df = day_df.sort_values('timestamp')
+
+                # Normalisation intrajournalière
+                P0 = day_df['price'].iloc[0]
+                day_df['relative'] = ((day_df['price'] - P0) / P0) * 100
+
+                segments.append(day_df)
+
+                # Ajoute une ligne vide pour créer une coupure dans le tracé
+                empty_row = pd.DataFrame({
+                    'timestamp': [day_df['timestamp'].iloc[-1] + pd.Timedelta(seconds=1)],
+                    'price': [np.nan],
+                    'relative': [np.nan]
+                })
+                segments.append(empty_row)
+
+            # Fusionner tous les segments avec coupures
+            df_plot = pd.concat(segments)
+
+            name = file.replace('.csv', '')
             traces_relative.append({
-                'x': df['timestamp'],
-                'y': df['relative'],
+                'x': df_plot['timestamp'],
+                'y': df_plot['relative'],
                 'type': 'line',
                 'name': name
             })
