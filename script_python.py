@@ -62,15 +62,12 @@ def update_dashboard(n):
             df = df.sort_values('timestamp')
             df['Date'] = df['timestamp'].dt.date
 
-            # On garde seulement les jours ouvrés
-            df = df[df['timestamp'].dt.weekday < 5]
+            # # On garde seulement les jours ouvrés
+            # df = df[df['timestamp'].dt.weekday < 5]
 
-            # On garde seulement les heures de cotation
-            df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
-
-            if df.empty:
-                continue
-
+            # # On garde seulement les heures de cotation
+            # df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
+            
             # Affichage cumulatif depuis le premier jour
             P0 = df['price'].iloc[0]
             df['relative'] = df['price'] / P0
@@ -126,10 +123,6 @@ def update_dashboard(n):
                 # df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
                 df = df.sort_values('timestamp')
                 df['Date'] = df['timestamp'].dt.date
-
-
-                if df.empty:
-                    continue
 
                 name = file.replace('.csv', '')
                 open_price = df['price'].iloc[0]
