@@ -115,11 +115,9 @@ def update_dashboard(n):
                 df['timestamp'] = pd.to_datetime(df['timestamp'])
                 df['price'] = df['price'].astype(str).str.replace(',', '', regex=False).replace('N/A', None).astype(float)
 
-                # df = df[df['timestamp'].dt.normalize() == today]
-                # df = df[df['timestamp'].dt.weekday < 5]
-                # df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
-                df = df.sort_values('timestamp')
-                df['Date'] = df['timestamp'].dt.date
+                df = df[df['timestamp'].dt.normalize() == today]
+                df = df[df['timestamp'].dt.weekday < 5]
+                df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
 
                 name = file.replace('.csv', '')
                 open_price = df['price'].iloc[0]
@@ -159,6 +157,7 @@ def update_dashboard(n):
     else:
         report_table = html.P("Le daily report sera disponible à 16h40.")
 
+    print(traces_relative[0]['x'].min(), traces_relative[0]['x'].max())
     return fig_relative, report_table
 
 server = app.server
