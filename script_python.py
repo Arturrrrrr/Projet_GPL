@@ -58,13 +58,7 @@ def update_dashboard(n):
             # # Filtrage : jours ouvrés et heures entre 08h00 et 16h40
             # df = df[df['timestamp'].dt.weekday < 5]
             # df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
-
-            df['Date'] = df['timestamp'].dt.date
-            df = df.sort_values('timestamp')
-
-            segments = []
-            prev_close = None
-
+            
             df = df.sort_values('timestamp')
             df['Date'] = df['timestamp'].dt.date
 
@@ -74,17 +68,17 @@ def update_dashboard(n):
             # On garde seulement les heures de cotation
             df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
 
+            if df.empty:
+                continue
+
             # Affichage cumulatif depuis le premier jour
             P0 = df['price'].iloc[0]
             df['relative'] = df['price'] / P0
 
-            df_plot = df  
-
-
             name = file.replace('.csv', '')
             traces_relative.append({
-                'x': df_plot['timestamp'],
-                'y': df_plot['relative'],
+                'x': df['timestamp'],
+                'y': df['relative'],
                 'type': 'line',
                 'name': name
             })
@@ -111,9 +105,7 @@ def update_dashboard(n):
                 'title': 'Relative variation (%)',
                 'tickformat': '.2f',
                 'ticksuffix': '%'
-            },
-            'height': 500,
-            'width': 1200
+            }
         }
     }
 
