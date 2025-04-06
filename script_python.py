@@ -65,29 +65,21 @@ def update_dashboard(n):
             segments = []
             prev_close = None
 
-            # Pour chaque journée, on calcule la variation par rapport à la clôture de la veille
-            for date_value, day_df in df.groupby('Date'):
-                day_df = day_df.sort_values('timestamp')
+            df = df.sort_values('timestamp')
+            df['Date'] = df['timestamp'].dt.date
 
-                if prev_close is None:
-                    P0 = day_df['price'].iloc[0]
-                else:
-                    P0 = prev_close
+            # On garde seulement les jours ouvrés
+            df = df[df['timestamp'].dt.weekday < 5]
 
-                day_df['relative'] = day_df['price'] / P0
-                prev_close = day_df['price'].iloc[-1]
+            # On garde seulement les heures de cotation
+            df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
 
-                segments.append(day_df)
+            # Affichage cumulatif depuis le premier jour
+            P0 = df['price'].iloc[0]
+            df['relative'] = df['price'] / P0
 
-                # Ligne vide pour éviter le trait entre deux jours
-                empty_row = pd.DataFrame({
-                    'timestamp': [day_df['timestamp'].iloc[-1] + pd.Timedelta(seconds=1)],
-                    'price': [np.nan],
-                    'relative': [np.nan]
-                })
-                segments.append(empty_row)
+            df_plot = df  
 
-            df_plot = pd.concat(segments)
 
             name = file.replace('.csv', '')
             traces_relative.append({
@@ -137,9 +129,12 @@ def update_dashboard(n):
                 df['timestamp'] = pd.to_datetime(df['timestamp'])
                 df['price'] = df['price'].astype(str).str.replace(',', '', regex=False).replace('N/A', None).astype(float)
 
-                df = df[df['timestamp'].dt.normalize() == today]
-                df = df[df['timestamp'].dt.weekday < 5]
-                df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
+                # df = df[df['timestamp'].dt.normalize() == today]
+                # df = df[df['timestamp'].dt.weekday < 5]
+                # df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
+                df = df.sort_values('timestamp')  # On garde tout
+                df['Date'] = df['timestamp'].dt.date
+
 
                 if df.empty:
                     continue
