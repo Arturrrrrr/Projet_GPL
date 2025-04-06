@@ -66,6 +66,14 @@ def update_dashboard(n):
             df = df.reset_index(drop=True)
             df['time_index'] = range(len(df))
 
+            # Construire la correspondance time_index ↔ timestamp
+            full_df = pd.concat([df_plot[['time_index', 'timestamp']] for df_plot in all_df_plots])
+
+            # Prendre un point tous les 100 par exemple
+            tick_step = 100
+            tickvals = full_df['time_index'][::tick_step].tolist()
+            ticktext = full_df['timestamp'][::tick_step].dt.strftime('%Y-%m-%d %H:%M').tolist()
+
             # Affichage cumulatif depuis le premier jour
             P0 = df['price'].iloc[0]
             df['relative'] = df['price'] / P0
@@ -90,14 +98,11 @@ def update_dashboard(n):
         'layout': {
             'title': 'Relative Indices Growth',
             'xaxis': {
-                'title': 'Date'
-                # 'type': 'date',
-                # 'rangebreaks': [
-                #     # Cacher les weekends
-                #     {'pattern': 'day of week', 'bounds': [5, 1]},
-                #     # Cacher les heures de fermeture
-                #     {'pattern': 'hour', 'bounds': ['16:40', '08:00']}
-                # ]
+                'title': 'Date',
+                'tickvals': tickvals,        # liste de valeurs de l'index artificiel
+                'ticktext': ticktext,        # leurs équivalents en date
+                'tickangle': -45,
+                'tickmode': 'array'
             },
             'yaxis': {
                 'title': 'Relative variation (%)',
