@@ -98,11 +98,7 @@ def update_dashboard(n):
         'layout': {
             'title': 'Relative Indices Growth',
             'xaxis': {
-                'title': 'Date',
-                'tickvals': tickvals,        # liste de valeurs de l'index artificiel
-                'ticktext': ticktext,        # leurs équivalents en date
-                'tickangle': -45,
-                'tickmode': 'array'
+                'title': 'Date'
             },
             'yaxis': {
                 'title': 'Relative variation (%)',
