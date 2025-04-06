@@ -120,7 +120,9 @@ def update_dashboard(n):
                 df['timestamp'] = pd.to_datetime(df['timestamp'])
                 df['price'] = df['price'].astype(str).str.replace(',', '', regex=False).replace('N/A', None).astype(float)
 
-                #df = df[df['timestamp'].dt.normalize() == today]
+                df = df[df['timestamp'].dt.normalize() == today]
+                df = df[df['timestamp'].dt.weekday < 5]
+                df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
 
                 name = file.replace('.csv', '')
                 open_price = df['price'].iloc[0]
