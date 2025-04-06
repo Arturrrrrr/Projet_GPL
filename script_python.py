@@ -63,6 +63,8 @@ def update_dashboard(n):
 
             # On garde seulement les heures de cotation
             df = df[df['timestamp'].dt.time.between(pd.to_datetime("08:00").time(), pd.to_datetime("16:40").time())]
+            df = df.reset_index(drop=True)
+            df['time_index'] = range(len(df))
 
             # Affichage cumulatif depuis le premier jour
             P0 = df['price'].iloc[0]
@@ -70,10 +72,12 @@ def update_dashboard(n):
 
             name = file.replace('.csv', '')
             traces_relative.append({
-                'x': df['timestamp'],
+                'x': df['time_index'],
                 'y': df['relative'],
                 'type': 'line',
-                'name': name
+                'name': name,
+                'hovertext': df['timestamp'],
+                'hoverinfo': 'text+y'
             })
 
         except Exception as e:
@@ -86,14 +90,14 @@ def update_dashboard(n):
         'layout': {
             'title': 'Relative Indices Growth',
             'xaxis': {
-                'title': 'Date',
-                'type': 'date',
-                'rangebreaks': [
-                    # Cacher les weekends
-                    {'pattern': 'day of week', 'bounds': [5, 1]},
-                    # Cacher les heures de fermeture
-                    {'pattern': 'hour', 'bounds': ['16:40', '08:00']}
-                ]
+                'title': 'Date'
+                # 'type': 'date',
+                # 'rangebreaks': [
+                #     # Cacher les weekends
+                #     {'pattern': 'day of week', 'bounds': [5, 1]},
+                #     # Cacher les heures de fermeture
+                #     {'pattern': 'hour', 'bounds': ['16:40', '08:00']}
+                # ]
             },
             'yaxis': {
                 'title': 'Relative variation (%)',
