@@ -83,9 +83,9 @@ def update_dashboard(n):
                 'x': df['time_index'],
                 'y': df['relative'],
                 'type': 'line',
-                'name': name
-                # 'hovertext': df['timestamp'],
-                # 'hoverinfo': 'text+y'
+                'name': name,
+                'hovertext': df['timestamp'],
+                'hoverinfo': 'text+y'
             })
 
         except Exception as e:
