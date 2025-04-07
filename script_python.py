@@ -66,13 +66,13 @@ def update_dashboard(n):
             df = df.reset_index(drop=True)
             df['time_index'] = range(len(df))
 
-            # Construire la correspondance time_index ↔ timestamp
-            full_df = pd.concat([df_plot[['time_index', 'timestamp']] for df_plot in all_df_plots])
+            # # Construire la correspondance time_index ↔ timestamp
+            # full_df = pd.concat([df_plot[['time_index', 'timestamp']] for df_plot in all_df_plots])
 
-            # Prendre un point tous les 100 par exemple
-            tick_step = 100
-            tickvals = full_df['time_index'][::tick_step].tolist()
-            ticktext = full_df['timestamp'][::tick_step].dt.strftime('%Y-%m-%d %H:%M').tolist()
+            # # Prendre un point tous les 100 par exemple
+            # tick_step = 100
+            # tickvals = full_df['time_index'][::tick_step].tolist()
+            # ticktext = full_df['timestamp'][::tick_step].dt.strftime('%Y-%m-%d %H:%M').tolist()
 
             # Affichage cumulatif depuis le premier jour
             P0 = df['price'].iloc[0]
@@ -83,9 +83,9 @@ def update_dashboard(n):
                 'x': df['time_index'],
                 'y': df['relative'],
                 'type': 'line',
-                'name': name,
-                'hovertext': df['timestamp'],
-                'hoverinfo': 'text+y'
+                'name': name
+                # 'hovertext': df['timestamp'],
+                # 'hoverinfo': 'text+y'
             })
 
         except Exception as e:
