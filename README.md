@@ -15,6 +15,8 @@ Thus, we selected the following indices:
 
 With the prices of each index we first plotted the related levels to compare the movements, and added a daily recap providing metrics like the highs, lows, volatilities, open and close prices.
 
+The python code with dash can be found in script_python.py, the main scraper that curls the data from every indice is scraper_final.sh, the files of format "indice_name.csv" contain the level data, the daily reports are stored, every other file is from previous versions and tests.
+
 To proceed, we: 
 - tried extracting data on different websites localy with curl and grep
 - started with something simple like the CAC40 indice level
