@@ -129,6 +129,9 @@ def update_dashboard(n):
                 close_price = df['price'].iloc[-1]
                 change = close_price - open_price
                 pct_change = ((close_price - open_price) / open_price) * 100
+                # Volatilité sur les rendements log intra-day
+                df['log_return'] = np.log(df['price'] / df['price'].shift(1))
+                volatility = df['log_return'].std() * 100  # en pourcentage
 
                 report_data.append({
                     'Index': name,
@@ -138,7 +141,7 @@ def update_dashboard(n):
                     'Change (%)': round(pct_change, 2),
                     'High': round(df['price'].max(), 2),
                     'Low': round(df['price'].min(), 2),
-                    'Volatility': round(df['price'].std(), 2)
+                    'Volatility': round(volatility, 2)
                 })
 
             except Exception as e:
